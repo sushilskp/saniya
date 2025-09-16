@@ -1,0 +1,1632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NexCart — Your Ultimate Shopping Destination</title>
+<style>
+  /* --- Dark Theme Variables --- */
+  :root{
+    --accent:#0b7cff; /* Blue */
+    --muted:#a0a0a0; /* Light gray for muted text */
+    --card:rgba(30,30,30,0.5); /* Semi-transparent dark card background */
+    --glass:rgba(255,255,255,0.08); /* Light glass effect */
+    --success:#2a9d8f; /* Teal */
+    --text-color:#f0f0f0; /* Light text color */
+    --bg-color:transparent; /* Transparent background */
+    --border-color:rgba(255,255,255,0.1); /* Light border for transparency */
+    --input-bg:rgba(255,255,255,0.15); /* Semi-transparent input background */
+    --input-border:rgba(255,255,255,0.3); /* Semi-transparent input border */
+  }
+  *{box-sizing:border-box}
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    color:var(--text-color);
+    background:var(--bg-color); /* Set body background to transparent */
+    text-shadow: 0 0 5px rgba(0,0,0,0.7); /* Add subtle text shadow for readability */
+  }
+
+  /* --- Background video covers whole page --- */
+  #bgWrap{position:fixed;inset:0;z-index:-2;overflow:hidden}
+  #background-video{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    min-width:100%;
+    min-height:100%;
+    width:auto;
+    height:auto;
+    object-fit:cover;
+    filter:brightness(45%);
+    will-change:transform;
+  }
+
+  /* --- Header (transparent glass) --- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:40;
+    backdrop-filter:blur(8px); /* Increased blur for better effect */
+    background:rgba(255,255,255,0.1); /* Semi-transparent white */
+    border-bottom:1px solid var(--border-color);
+    text-shadow: none; /* Remove text shadow from header for cleaner look */
+  }
+  .container{
+    max-width:100%;
+    margin:0 auto;
+    padding:12px 24px;
+    background: transparent; /* Ensure container itself is transparent */
+  }
+  .topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+  .logo{font-weight:800;color:var(--accent);font-size:22px}
+  .intro{font-size:13px;color:rgba(255,255,255,0.9);margin-left:8px}
+  .searchbar{flex:1;display:flex;gap:8px;align-items:center;min-width:220px}
+  .input{
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid var(--input-border);
+    min-width:0;
+    background:var(--input-bg);
+    color:var(--text-color);
+    width:100%;
+  }
+  .btn{background:var(--accent);color:#fff;padding:9px 14px;border-radius:10px;border:0;cursor:pointer}
+  .ghost{background:transparent;border:1px solid var(--input-border);color:var(--text-color);padding:8px 12px;border-radius:8px}
+  nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .mini{font-size:13px;color:var(--text-color)}
+
+  /* --- Layout --- */
+  main{
+    padding:20px 24px;
+    position:relative;
+    z-index:1;
+    background: transparent; /* Ensure main content area is transparent */
+  }
+  .layout{display:grid;grid-template-columns:1fr 3fr 1fr;gap:20px;align-items:start;width:100%}
+  .card{
+    background:var(--card); /* Use semi-transparent card background */
+    padding:16px;
+    border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3); /* Darker shadow for dark theme */
+    border:1px solid var(--border-color); /* Card border */
+    width:100%;
+    color: var(--text-color); /* Ensure text color is visible */
+  }
+
+  /* Sidebar / Filters */
+  .categories{display:flex;flex-direction:column;gap:10px}
+  .category{
+    padding:10px;
+    border-radius:8px;
+    background:var(--input-bg); /* Semi-transparent category background */
+    border:1px solid var(--input-border); /* Semi-transparent category border */
+    cursor:pointer;
+    font-weight:600;
+    color:var(--text-color);
+  }
+  .category:hover{background:rgba(255,255,255,0.15);}
+  .chip{
+    padding:6px 10px;
+    border-radius:6px;
+    border:1px dashed var(--input-border); /* Semi-transparent chip border */
+    font-size:12px;
+    color:var(--text-color);
+    background:var(--input-bg);
+    cursor:pointer;
+  }
+  .chip:hover{background:rgba(255,255,255,0.15);}
+
+  /* Products grid */
+  .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;width:100%}
+  .product{display:flex;flex-direction:column;gap:8px;height:100%}
+  .prod-img{height:220px;border-radius:10px;background:var(--input-bg);overflow:hidden;cursor:zoom-in}
+  .prod-img img{width:100%;height:100%;object-fit:cover}
+  .price{font-weight:700;color:var(--text-color)}
+  .old{color:var(--muted);text-decoration:line-through;margin-left:8px}
+  .muted{color:var(--muted)}
+
+  /* Modal */
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+  .modal{
+    width:92%;
+    max-width:940px;
+    background:rgba(30,30,30,0.85); /* Slightly less transparent for modal content */
+    border-radius:12px;
+    padding:18px;
+    max-height:92vh;
+    overflow:auto;
+    position:relative;
+    border:1px solid var(--border-color);
+  }
+  .thumbnails{display:flex;gap:8px;margin-top:8px}
+  .thumb{height:64px;width:64px;border-radius:8px;background:var(--input-bg);overflow:hidden;cursor:pointer;border:1px solid var(--input-border);}
+  .modal-close-btn{position:absolute;top:10px;right:10px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);padding:5px;}
+  .modal-close-btn:hover{color:var(--text-color);}
+
+  /* Footer */
+  footer{
+    margin-top:28px;
+    padding:24px;
+    background:rgba(18,18,18,0.4); /* Semi-transparent dark background */
+    color:var(--text-color);
+    border-top:1px solid var(--border-color);
+    text-shadow: none; /* Remove text shadow from footer */
+  }
+  .footer-grid{max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;width:100%}
+  .fcol h4{margin-bottom:8px;color:var(--text-color);}
+
+  /* Responsive */
+  @media (max-width:1100px){
+    .layout{grid-template-columns:1fr 2fr}
+    .prod-grid{grid-template-columns:repeat(2,1fr)}
+    .layout > aside.right{display:none}
+  }
+  @media (max-width:760px){
+    .layout{grid-template-columns:1fr}
+    .prod-grid{grid-template-columns:1fr}
+    .searchbar{order:3;width:100%}
+    header .intro{display:none}
+    .container{padding:12px}
+    .modal{max-width:98%; padding:10px;}
+    .modal-close-btn{top:5px; right:5px;}
+    .product-page-layout > .card { grid-column: 1 / -1; }
+  }
+
+  /* Drawer for filters on mobile */
+  .drawer{
+    position:fixed;left:0;top:0;bottom:0;width:320px;
+    background:rgba(18,18,18,0.9); /* Slightly darker for drawer */
+    z-index:80;transform:translateX(-110%);transition:transform .28s ease;
+    border-right:1px solid var(--border-color);
+    padding:18px;overflow:auto;
+  }
+  .drawer.open{transform:translateX(0)}
+  .drawer .close{display:flex;justify-content:flex-end}
+
+  /* utility */
+  .flex{display:flex;gap:12px;align-items:center}
+  .right{margin-left:auto}
+  .text-center{text-align:center;}
+  .form-group{margin-bottom:12px;}
+  .form-group label{display:block;margin-bottom:4px;font-weight:600;color:var(--text-color);}
+  .form-group input, .form-group select, .form-group textarea{
+    width:100%;padding:10px;border-radius:8px;
+    border:1px solid var(--input-border);
+    background:var(--input-bg);
+    color:var(--text-color);
+  }
+  .form-group textarea{min-height:80px;}
+  .error-message{color:red;font-size:12px;margin-top:4px;}
+  .review-item{border-bottom:1px solid var(--border-color);padding-bottom:8px;margin-bottom:8px;}
+  .review-item:last-child{border-bottom:none;}
+  .hr{background:var(--border-color) !important;}
+
+  /* Toast styling */
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px;
+    border-radius: 8px; z-index: 1000; display: none; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Background video wrap (covers whole page) -->
+<div id="bgWrap" aria-hidden="true">
+  <video autoplay muted loop id="background-video" playsinline>
+    <source id="vidSrc" src="BG.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<!-- Main Header -->
+<header role="banner">
+  <div class="container topbar">
+    <div class="flex" style="align-items:center">
+      <div class="logo">NexCart</div>
+    </div>
+
+    <div class="searchbar" role="search">
+      <label for="searchInput" class="sr-only">Search products, brands, categories</label>
+      <input id="searchInput" class="input" placeholder="Search products, brands, categories..." aria-label="Search products" />
+      <label for="sortSelectTop" class="sr-only">Sort products</label>
+      <select id="sortSelectTop" class="input" style="max-width:160px" aria-label="Sort products">
+        <option value="relevance">Sort: Relevance</option>
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
+        <option value="new">New arrivals</option>
+      </select>
+      <button class="btn" id="searchBtn" aria-label="Search">Search</button>
+    </div>
+
+    <nav role="navigation" aria-label="Main navigation">
+      <button class="ghost" id="filterToggle" aria-controls="drawer" aria-expanded="false">Filters</button>
+      <div class="mini" id="welcomeText" aria-live="polite">Welcome, Guest</div>
+      <button class="ghost" id="btnProfile" aria-label="Account or Login/Register">Account</button>
+      <button class="btn" id="openCartBtn" aria-label="Open shopping cart">Cart (<span id="cartCount" aria-live="polite">0</span>)</button>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile filter drawer -->
+<div id="drawer" class="drawer" aria-hidden="true" role="dialog" aria-labelledby="drawer-title">
+  <div class="close">
+    <h3 id="drawer-title" class="sr-only">Filters</h3>
+    <button class="ghost" id="closeDrawer" aria-label="Close filters drawer">Close</button>
+  </div>
+  <div style="margin-top:12px">
+    <h3>Filters</h3>
+    <div style="margin-top:8px"><strong>Categories</strong><div id="drawerCats" style="margin-top:8px"></div></div>
+    <div style="margin-top:12px"><strong>Price</strong><div style="display:flex;gap:8px;margin-top:8px"><input id="dMin" class="input" placeholder="Min" style="width:100px" type="number"/><input id="dMax" class="input" placeholder="Max" style="width:100px" type="number"/></div><button id="dApply" class="btn" style="margin-top:8px">Apply</button></div>
+  </div>
+</div>
+
+<main class="container" role="main">
+  <div class="layout">
+
+    <!-- Left: sidebar filters -->
+    <aside class="card" role="complementary" aria-labelledby="sidebar-filters-heading">
+      <h2 id="sidebar-filters-heading" class="sr-only">Product Filters</h2>
+      <strong>Categories</strong>
+      <div id="categoryList" style="margin-top:8px" class="categories"></div>
+      <div class="hr" style="margin:12px 0;height:1px;background:#eef6ff" role="separator"></div>
+      <div>
+        <strong>Price</strong>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="priceMin" class="input" placeholder="Min" style="width:90px" type="number"/>
+          <input id="priceMax" class="input" placeholder="Max" style="width:90px" type="number"/>
+        </div>
+        <div style="margin-top:8px"><button id="applyPrice" class="btn">Apply</button><button id="clearFilters" class="ghost" style="margin-left:8px">Clear</button></div>
+      </div>
+      <div style="margin-top:12px">
+        <strong>Brand</strong>
+        <div id="brandList" style="margin-top:8px"></div>
+      </div>
+      <div style="margin-top:12px">
+        <strong>Newsletter</strong>
+        <div style="margin-top:8px"><input id="newsletterEmail" class="input" placeholder="you@example.com" type="email"/><button id="subscribeBtn" class="btn" style="margin-top:8px;width:100%">Subscribe</button></div>
+      </div>
+    </aside>
+
+    <!-- Middle: products -->
+    <section aria-labelledby="products-heading">
+      <h2 id="products-heading" class="sr-only">Product Listings</h2>
+      <div class="card hero" id="heroCard" role="region" aria-label="Featured promotions">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="flex:1"><h2 style="margin:0">NexCart — Shop everything you love</h2><div class="muted" style="margin-top:6px">Featured: Free shipping over ₹999 • Easy returns • Secure payments</div></div>
+          <div class="right" style="display:flex;gap:8px;align-items:center"><div class="pill">20% OFF</div><div class="muted">Use code <strong>NEX20</strong></div></div>
+        </div>
+      </div>
+
+      <div style="height:16px" aria-hidden="true"></div>
+
+      <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <button class="btn" id="addNewProductBtn" aria-label="Add a new product">Add New Product</button>
+      </div>
+
+      <div id="productsGrid" class="prod-grid" role="region" aria-live="polite" aria-atomic="true" aria-label="Product listings"></div>
+
+      <div style="height:18px" aria-hidden="true"></div>
+
+      <!-- Pagination controls -->
+      <nav aria-label="Product page navigation" style="display:flex;gap:8px;align-items:center;justify-content:center">
+        <button class="ghost" id="prevPage" aria-label="Previous page">Prev</button>
+        <div class="muted" id="paginationInfo">Page <span id="pageNum" aria-live="polite">1</span></div>
+        <button class="ghost" id="nextPage" aria-label="Next page">Next</button>
+      </nav>
+    </section>
+
+    <!-- Right: cart & quick links -->
+    <aside class="card right" role="complementary" aria-labelledby="cart-summary-heading">
+      <h2 id="cart-summary-heading" class="sr-only">Cart Summary and Support</h2>
+      <strong>Cart Summary</strong>
+      <div class="cart-list" id="cartList" style="margin-top:8px" role="region" aria-live="polite" aria-atomic="true" aria-label="Items in cart"></div>
+      <div class="hr" style="margin:12px 0;height:1px;background:#eef6ff" role="separator"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><div class="muted">Subtotal</div><div><strong id="cartSubtotal" aria-live="polite">₹0</strong></div></div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" id="checkoutBtn" aria-label="Proceed to checkout">Proceed to Checkout</button>
+        <button class="ghost" id="viewCart" aria-label="View full cart details">View Cart</button>
+      </div>
+      <div style="margin-top:8px">
+        <label for="couponInput" class="sr-only">Coupon code</label>
+        <input id="couponInput" class="input" placeholder="Coupon code" aria-label="Enter coupon code" />
+        <button class="btn" id="applyCoupon" style="margin-top:8px;width:100%" aria-label="Apply coupon code">Apply Coupon</button>
+      </div>
+
+      <div style="margin-top:12px" class="card" role="region" aria-labelledby="top-categories-heading">
+        <h3 id="top-categories-heading">Top Categories</h3>
+        <div id="sidebarCats" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px" role="group" aria-label="Top categories"></div>
+      </div>
+
+      <div style="margin-top:12px" class="card" role="region" aria-labelledby="support-heading">
+        <h3 id="support-heading">Support</h3>
+        <div style="margin-top:8px">
+          <div class="muted">Need help? Contact support or try our live chat.</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="ghost" onclick="showPage('contact')" aria-label="Contact Us">Contact Us</button>
+            <button class="btn" id="openChat" aria-label="Open live chat">Live Chat</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Dynamic Page Area (for product details, account, checkout, etc.) -->
+  <div id="pageArea" style="margin-top:22px" role="region" aria-live="polite" aria-atomic="true"></div>
+
+</main>
+
+<!-- Universal Modal -->
+<div id="modalBack" class="modal-back" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
+  <div class="modal" id="modalContent">
+    <!-- Modal content will be dynamically loaded here -->
+    <h2 id="modal-title" class="sr-only">Modal Window</h2>
+  </div>
+</div>
+
+<!-- Main Footer -->
+<footer role="contentinfo">
+  <div class="footer-grid">
+    <div class="fcol" role="group" aria-labelledby="about-nexcart-heading">
+      <h4 id="about-nexcart-heading">About NexCart</h4>
+      <div class="muted">NexCart is your one-stop shop for all your needs. Discover amazing products and enjoy a seamless shopping experience.</div>
+    </div>
+    <div class="fcol" role="group" aria-labelledby="contact-info-heading">
+      <h4 id="contact-info-heading">Contact</h4>
+      <div class="muted">support@nexcart.example<br/>+91 98765 43210</div>
+    </div>
+    <div class="fcol" role="group" aria-labelledby="follow-us-heading">
+      <h4 id="follow-us-heading">Follow</h4>
+      <div class="muted">Instagram | YouTube | Facebook</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- Data & keys ---------- */
+const SAMPLE_PRODUCTS = [
+  {id:'p1',name:'Premium Wireless Mouse',category:'Electronics',brand:'LogiTech',price:1299,old:1599,rating:4.5,stock:50, description: 'Ergonomic design with advanced optical tracking for precision and comfort. Long-lasting battery life.', imageUrl: '1.jpg'},
+  {id:'p2',name:'Wireless Earbuds X200',category:'Electronics',brand:'Soundic',price:1499,old:1999,rating:4.3,stock:40, description: 'Immersive sound experience with noise cancellation. Perfect for music and calls on the go.', imageUrl: 'https://picsum.photos/seed/p2/400/320'},
+  {id:'p3',name:'Slim Fit Shirt - Blue',category:'Clothing',brand:'Moda',price:899,old:null,rating:4.0,stock:10, description: 'Comfortable and stylish slim fit shirt made from premium cotton. Ideal for casual and semi-formal occasions.', imageUrl: 'https://picsum.photos/seed/p3/400/320'},
+  {id:'p4',name:'Running Shoes Alpha',category:'Footwear',brand:'Stride',price:2599,old:3499,rating:4.6,stock:18, description: 'Lightweight and breathable running shoes with superior cushioning for optimal performance.', imageUrl: 'https://picsum.photos/seed/p4/400/320'},
+  {id:'p5',name:'Stainless Steel Water Bottle',category:'Home',brand:'PureKeep',price:399,old:null,rating:4.2,stock:80, description: 'Durable and eco-friendly water bottle, keeps drinks cold for 24 hours and hot for 12 hours.', imageUrl: 'https://picsum.photos/seed/p5/400/320'},
+  {id:'p6',name:'Smartwatch S10',category:'Electronics',brand:'TimeTec',price:2999,old:3999,rating:4.1,stock:0, description: 'Track your fitness, receive notifications, and monitor your health with this sleek smartwatch.', imageUrl: 'https://picsum.photos/seed/p6/400/320'},
+  {id:'p7',name:'Classic Notebook (Set of 3)',category:'Stationery',brand:'PagePro',price:249,old:null,rating:4.7,stock:120, description: 'High-quality paper notebooks, perfect for journaling, notes, or creative writing. Set of three.', imageUrl: 'https://picsum.photos/seed/p7/400/320'},
+  {id:'p8',name:'Noise Cancelling Headphones',category:'Electronics',brand:'Soundic',price:4999,old:5999,rating:4.4,stock:12, description: 'Experience pure sound with advanced noise-cancelling technology. Comfortable over-ear design.', imageUrl: 'https://picsum.photos/seed/p8/400/320'},
+  {id:'p9',name:'Designer Handbag',category:'Fashion',brand:'Aura',price:3599,old:4999,rating:4.0,stock:9, description: 'Elegant and spacious handbag, crafted with premium materials. A perfect accessory for any outfit.', imageUrl: 'https://picsum.photos/seed/p9/400/320'},
+  {id:'p10',name:'Organic Green Tea',category:'Grocery',brand:'LeafWell',price:299,old:null,rating:4.8,stock:200, description: 'Finest organic green tea leaves, rich in antioxidants. Enjoy a refreshing and healthy beverage.', imageUrl: 'Organic Green Tea.jpg'},
+  {id:'p11',name:'Yoga Mat Pro',category:'Sports',brand:'Flexi',price:799,old:null,rating:4.3,stock:30, description: 'Non-slip and extra-thick yoga mat for comfortable and stable practice. Easy to roll and carry.', imageUrl: 'https://picsum.photos/seed/p11/400/320'},
+  {id:'p12',name:'LED Desk Lamp',category:'Home',brand:'Luma',price:999,old:1299,rating:4.2,stock:22, description: 'Modern LED desk lamp with adjustable brightness and color temperature. Energy-efficient and eye-friendly.', imageUrl: 'https://picsum.photos/seed/p12/400/320'},
+  {id:'p13',name:'Bluetooth Speaker Mini',category:'Electronics',brand:'BoomBox',price:799,old:null,rating:4.0,stock:60, description: 'Compact and powerful Bluetooth speaker with clear sound and deep bass. Perfect for travel.', imageUrl: 'https://picsum.photos/seed/p13/400/320'},
+  {id:'p14',name:'Comfort Cotton Socks (5 Pairs)',category:'Clothing',brand:'Moda',price:249,old:null,rating:4.5,stock:180, description: 'Soft and breathable cotton socks for all-day comfort. Pack of 5 pairs.', imageUrl: 'https://picsum.photos/seed/p14/400/320'},
+  {id:'p15',name:'HD Webcam',category:'Electronics',brand:'Vision',price:1299,old:1699,rating:3.9,stock:15, description: 'High-definition webcam for clear video calls and streaming. Easy plug-and-play setup.', imageUrl: 'https://picsum.photos/seed/p15/400/320'},
+  {id:'p16',name:'Classic Wristwatch',category:'Accessories',brand:'TimeTec',price:1999,old:2799,rating:4.1,stock:14, description: 'Timeless design with a durable leather strap. A sophisticated accessory for any occasion.', imageUrl: 'https://picsum.photos/seed/p16/400/320'},
+  {id:'p17',name:"Men's Wallet - Leather",category:'Accessories',brand:'Aura',price:899,old:null,rating:4.0,stock:33, description: 'Genuine leather wallet with multiple card slots and a coin pocket. Slim and stylish.', imageUrl: 'https://picsum.photos/seed/p17/400/320'},
+  {id:'p18',name:'Scented Candle',category:'Home',brand:'Glow',price:399,old:null,rating:4.6,stock:50, description: 'Relaxing scented candle made with natural waxes. Fills your room with a soothing aroma.', imageUrl: 'https://picsum.photos/seed/p18/400/320'},
+  {id:'p19',name:'Kitchen Knife Set',category:'Home',brand:'ChefPro',price:2499,old:3499,rating:4.4,stock:8, description: 'Professional-grade stainless steel knife set for all your culinary needs. Includes various knives and a block.', imageUrl: 'https://picsum.photos/seed/p19/400/320'},
+  {id:'p20',name:'Kids Puzzle Toy',category:'Toys',brand:'FunPlay',price:349,old:null,rating:4.7,stock:70, description: 'Engaging and educational puzzle toy for children. Helps develop problem-solving skills.', imageUrl: 'https://picsum.photos/seed/p20/400/320'},
+  {id:'p21',name:'Gaming Mouse',category:'Electronics',brand:'ProGear',price:1499,old:1999,rating:4.5,stock:26, description: 'High-precision gaming mouse with customizable buttons and RGB lighting. Enhance your gaming experience.', imageUrl: 'https://picsum.photos/seed/p21/400/320'},
+  {id:'p22',name:'Travel Backpack 35L',category:'Bags',brand:'Voyag',price:1999,old:2499,rating:4.3,stock:13, description: 'Spacious and durable travel backpack with multiple compartments. Ideal for short trips and daily commute.', imageUrl: 'https://picsum.photos/seed/p22/400/320'},
+  {id:'p23',name:'Face Wash - Gentle',category:'Beauty',brand:'Gleam',price:299,old:null,rating:4.2,stock:44, description: 'Gentle face wash for all skin types. Cleanses and refreshes without drying your skin.', imageUrl: 'https://picsum.photos/seed/p23/400/320'},
+  {id:'p24',name:'Portable Charger 10000mAh',category:'Electronics',brand:'PowerUp',price:899,old:1199,rating:4.1,stock:39, description: 'Fast-charging power bank with 10000mAh capacity. Keep your devices charged on the go.', imageUrl: 'https://picsum.photos/seed/p24/400/320'},
+  {id:'p25',name:'Electric Kettle 1.7L',category:'Home Appliances',brand:'KitchMaster',price:1199,old:1499,rating:4.0,stock:25, description: 'Quick-boil electric kettle with 1.7L capacity. Perfect for tea, coffee, and instant meals.', imageUrl: 'https://picsum.photos/seed/p25/400/320'},
+  {id:'p26',name:'Bluetooth Keyboard',category:'Electronics',brand:'LogiTech',price:1899,old:2299,rating:4.4,stock:35, description: 'Wireless Bluetooth keyboard for seamless typing across multiple devices. Compact and portable.', imageUrl: 'https://picsum.photos/seed/p26/400/320'},
+  {id:'p27',name:'Denim Jeans - Slim Fit',category:'Clothing',brand:'Moda',price:1599,old:1999,rating:4.2,stock:20, description: 'Stylish slim fit denim jeans made from comfortable stretch fabric. A wardrobe essential.', imageUrl: 'https://picsum.photos/seed/p27/400/320'},
+  {id:'p28',name:'Running Shorts',category:'Sports',brand:'Flexi',price:699,old:null,rating:4.1,stock:60, description: 'Lightweight and moisture-wicking running shorts. Designed for maximum comfort during workouts.', imageUrl: 'https://picsum.photos/seed/p28/400/320'},
+  {id:'p29',name:'Coffee Maker',category:'Home Appliances',brand:'BrewWell',price:2499,old:2999,rating:4.5,stock:15, description: 'Automatic coffee maker with programmable settings. Enjoy fresh brewed coffee every morning.', imageUrl: 'https://picsum.photos/seed/p29/'},
+  {id:'p30',name:'External Hard Drive 1TB',category:'Electronics',brand:'DataSafe',price:3999,old:4599,rating:4.3,stock:28, description: 'Secure and portable 1TB external hard drive. Store all your important files and backups.', imageUrl: 'https://picsum.photos/seed/p30/400/320'},
+  {id:'p31',name:'Graphic T-Shirt',category:'Clothing',brand:'UrbanWear',price:499,old:null,rating:4.6,stock:90, description: 'Trendy graphic t-shirt made from soft cotton. Express your style with unique designs.', imageUrl: 'https://picsum.photos/seed/p31/400/320'},
+  {id:'p32',name:'Dumbbell Set (5kg)',category:'Sports',brand:'FitPro',price:1299,old:1599,rating:4.0,stock:10, description: 'Compact 5kg dumbbell set for home workouts. Ideal for strength training and toning.', imageUrl: 'https://picsum.photos/seed/p32/400/320'},
+  {id:'p33',name:'Smart LED TV 4K 55"',category:'Electronics',brand:'Vision',price:45999,old:52999,rating:4.7,stock:5, description: 'Immersive 55-inch 4K Smart LED TV with vibrant colors and smart features. Enjoy your favorite content in stunning detail.', imageUrl: 'https://picsum.photos/seed/p33/400/320'},
+  {id:'p34',name:'Cookware Set (Non-stick)',category:'Home',brand:'ChefPro',price:3499,old:4299,rating:4.4,stock:12, description: 'Complete non-stick cookware set for healthy and easy cooking. Durable and easy to clean.', imageUrl: 'https://picsum.photos/seed/p34/400/320'},
+  {id:'p35',name:'Wireless Charger Pad',category:'Electronics',brand:'PowerUp',price:799,old:999,rating:4.2,stock:70, description: 'Fast wireless charging pad for compatible smartphones. Clutter-free charging solution.', imageUrl: 'https://picsum.photos/seed/p35/400/320'},
+  {id:'p36',name:'Formal Dress Shirt',category:'Clothing',brand:'Elegance',price:1199,old:1499,rating:4.1,stock:15, description: 'Premium formal dress shirt for a sharp and sophisticated look. Perfect for business and special events.', imageUrl: 'https://picsum.photos/seed/p36/400/320'},
+  {id:'p37',name:'Protein Powder 1kg',category:'Health',brand:'NutriMax',price:1899,old:2199,rating:4.8,stock:40, description: 'High-quality protein powder for muscle recovery and growth. Available in delicious flavors.', imageUrl: 'https://picsum.photos/seed/p37/400/320'},
+  {id:'p38',name:'Digital Camera',category:'Electronics',brand:'SnapShot',price:12999,old:15999,rating:4.5,stock:7, description: 'Capture stunning photos and videos with this high-resolution digital camera. Easy to use for beginners and enthusiasts.', imageUrl: 'https://picsum.photos/seed/p38/400/320'},
+  {id:'p39',name:'Bed Sheet Set - King',category:'Home',brand:'DreamWeave',price:1799,old:2199,rating:4.3,stock:30, description: 'Luxurious king-size bed sheet set made from soft and breathable fabric. Ensures a comfortable night\'s sleep.', imageUrl: 'https://picsum.photos/seed/p39/400/320'},
+  {id:'p40',name:'Gaming Headset',category:'Electronics',brand:'ProGear',price:2499,old:2999,rating:4.6,stock:22, description: 'Immersive gaming headset with crystal-clear audio and a noise-cancelling microphone. Enhance your gaming communication.', imageUrl: 'https://picsum.photos/seed/p40/400/320'},
+  {id:'p41',name:'Leather Belt',category:'Accessories',brand:'Aura',price:699,old:null,rating:4.0,stock:55, description: 'Classic leather belt with a sleek buckle. A versatile accessory for formal and casual wear.', imageUrl: 'https://picsum.photos/seed/p41/400/320'},
+  {id:'p42',name:'Air Fryer',category:'Home Appliances',brand:'KitchMaster',price:4999,old:5999,rating:4.4,stock:18, description: 'Healthy cooking with less oil. This air fryer delivers crispy results for your favorite foods.', imageUrl: 'https://picsum.photos/seed/p42/400/320'},
+  {id:'p43',name:'Portable Bluetooth Speaker',category:'Electronics',brand:'BoomBox',price:1999,old:2499,rating:4.3,stock:30, description: 'Powerful portable Bluetooth speaker with rich sound and long battery life. Take your music anywhere.', imageUrl: 'https://picsum.photos/seed/p43/400/320'},
+  {id:'p44',name:"Women's Sandals",category:'Footwear',brand:'Stride',price:899,old:1199,rating:4.1,stock:25, description: 'Comfortable and stylish women\'s sandals for everyday wear. Perfect for summer.', imageUrl: 'https://picsum.photos/seed/p44/400/320'},
+  {id:'p45',name:'Desk Organizer',category:'Stationery',brand:'PagePro',price:349,old:null,rating:4.2,stock:100, description: 'Keep your workspace tidy with this multi-functional desk organizer. Stores pens, notes, and small accessories.', imageUrl: 'https://picsum.photos/seed/p45/400/320'},
+  {id:'p46',name:'Hair Dryer',category:'Beauty',brand:'Gleam',price:1299,old:1599,rating:4.0,stock:38, description: 'Fast and efficient hair dryer with multiple heat and speed settings. Achieve salon-quality results at home.', imageUrl: 'https://picsum.photos/seed/p46/400/320'},
+  {id:'p47',name:'Smart Home Hub',category:'Electronics',brand:'TimeTec',price:3499,old:4299,rating:4.5,stock:10, description: 'Centralize your smart home devices with this intelligent hub. Control lights, thermostats, and more.', imageUrl: 'https://picsum.photos/seed/p47/400/320'},
+  {id:'p48',name:'Travel Mug',category:'Home',brand:'PureKeep',price:499,old:null,rating:4.6,stock:75, description: 'Insulated travel mug to keep your beverages hot or cold for hours. Spill-proof design.', imageUrl: 'https://picsum.photos/seed/p48/400/320'},
+  {id:'p49',name:'Kids Building Blocks',category:'Toys',brand:'FunPlay',price:799,old:999,rating:4.7,stock:60, description: 'Colorful and durable building blocks for endless creative play. Helps develop fine motor skills.', imageUrl: 'https://picsum.photos/seed/p49/400/320'},
+  {id:'p50',name:'Fitness Tracker',category:'Electronics',brand:'FitPro',price:2199,old:2799,rating:4.2,stock:45, description: 'Monitor your daily activity, heart rate, and sleep patterns with this advanced fitness tracker.', imageUrl: 'https://picsum.photos/seed/p50/400/320'},
+  {id:'p51',name:'Backpack - Laptop',category:'Bags',brand:'Voyag',price:2499,old:2999,rating:4.4,stock:17, description: 'Padded laptop backpack with ergonomic design. Protects your laptop and provides comfortable carrying.', imageUrl: 'https://picsum.photos/seed/p51/400/320'},
+  {id:'p52',name:'Sunscreen SPF 50',category:'Beauty',brand:'Gleam',price:399,old:null,rating:4.3,stock:80, description: 'High-protection sunscreen with SPF 50. Shields your skin from harmful UV rays.', imageUrl: 'https://picsum.photos/seed/p52/400/320'},
+  {id:'p53',name:'Power Bank 20000mAh',category:'Electronics',brand:'PowerUp',price:1499,old:1899,rating:4.5,stock:30, description: 'Ultra-high capacity power bank for multiple device charges. Essential for long journeys.', imageUrl: 'https://picsum.photos/seed/p53/400/320'},
+  {id:'p54',name:"Men's Polo T-Shirt",category:'Clothing',brand:'UrbanWear',price:799,old:999,rating:4.1,stock:50, description: 'Classic men\'s polo t-shirt made from breathable fabric. Perfect for a smart-casual look.', imageUrl: 'https://picsum.photos/seed/p54/400/320'},
+  {id:'p55',name:'Resistance Bands Set',category:'Sports',brand:'Flexi',price:599,old:null,rating:4.0,stock:90, description: 'Versatile resistance bands set for full-body workouts. Comes with different resistance levels.', imageUrl: 'https://picsum.photos/seed/p55/400/320'},
+  {id:'p56',name:'Blender - Personal',category:'Home Appliances',brand:'KitchMaster',price:1799,old:2199,rating:4.2,stock:20, description: 'Compact personal blender for smoothies and shakes on the go. Easy to use and clean.', imageUrl: 'https://picsum.photos/seed/p56/400/320'},
+  {id:'p57',name:'Wireless Router',category:'Electronics',brand:'NetConnect',price:1999,old:2499,rating:4.3,stock:25, description: 'High-speed wireless router for seamless internet connectivity. Ideal for home and small office.', imageUrl: 'https://picsum.photos/seed/p57/400/320'},
+  {id:'p58',name:'Wall Art - Abstract',category:'Home Decor',brand:'Artistic',price:899,old:1199,rating:4.0,stock:15, description: 'Modern abstract wall art to enhance your living space. Adds a touch of elegance and style.', imageUrl: 'https://picsum.photos/seed/p58/400/320'},
+  {id:'p59',name:"Children's Story Book",category:'Books',brand:'PagePro',price:199,old:null,rating:4.8,stock:150, description: 'Engaging story book for children with colorful illustrations. Fosters a love for reading.', imageUrl: 'https://picsum.photos/seed/p59/400/320'},
+  {id:'p60',name:'Smart Scale',category:'Health',brand:'FitPro',price:1499,old:1899,rating:4.1,stock:30, description: 'Smart body composition scale tracks weight, BMI, and more. Syncs with your fitness apps.', imageUrl: 'https://picsum.photos/seed/p60/400/320'}
+];
+
+const LS = { USERS: 'nex_users', SESS: 'nex_sess', CART: 'nex_cart', WISHLIST: 'nex_wish', ORDERS: 'nex_orders', REVIEWS: 'nex_reviews', COUPONS: 'nex_coupons', NEWS: 'nex_newsletter', PRODUCTS: 'nex_products' };
+let state = {
+  products: [], // Will be loaded from localStorage or SAMPLE_PRODUCTS
+  page: 'home',
+  pageData: {},
+  perPage: 9, // Re-enabled for pagination
+  currentPage: 1, // Re-enabled for pagination
+  filters: {category:null,brand:null,priceMin:null,priceMax:null,search:null,sort:'relevance'},
+  editingProduct: null // Stores product ID if editing
+};
+
+function init(){
+  // Load products from localStorage or use sample data
+  if(!localStorage.getItem(LS.PRODUCTS)) {
+    localStorage.setItem(LS.PRODUCTS, JSON.stringify(SAMPLE_PRODUCTS));
+  }
+  state.products = JSON.parse(localStorage.getItem(LS.PRODUCTS));
+
+  if(!localStorage.getItem(LS.COUPONS)){ const coupons=[{code:'NEX20',type:'percent',val:20,expires:null},{code:'FREESHIP',type:'ship',val:0,expires:null}]; localStorage.setItem(LS.COUPONS,JSON.stringify(coupons)); }
+  if(!localStorage.getItem(LS.USERS)) localStorage.setItem(LS.USERS,JSON.stringify([]));
+  if(!localStorage.getItem(LS.CART)) localStorage.setItem(LS.CART,JSON.stringify({}));
+  if(!localStorage.getItem(LS.WISHLIST)) localStorage.setItem(LS.WISHLIST,JSON.stringify([]));
+  if(!localStorage.getItem(LS.ORDERS)) localStorage.setItem(LS.ORDERS,JSON.stringify([])); // Ensure orders is an array
+  if(!localStorage.getItem(LS.REVIEWS)) localStorage.setItem(LS.REVIEWS,JSON.stringify({}));
+  renderUI(); bindEvents(); /* fillMega(); */ showProducts(); hydrateSidebar(); updateCartSummary(); refreshWelcome();
+}
+
+function q(sel,ctx=document){return ctx.querySelector(sel)}
+function qAll(sel,ctx=document){return Array.from((ctx||document).querySelectorAll(sel))}
+function toast(msg,timeout=2600){
+  let t = q('#toast');
+  if (!t) { // Create toast element if it doesn't exist
+    t = document.createElement('div');
+    t.id = 'toast';
+    Object.assign(t.style, {
+      position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+      background: 'rgba(0,0,0,0.8)', color: '#fff', padding: '10px 20px',
+      borderRadius: '8px', zIndex: '1000', display: 'none', fontSize: '14px'
+    });
+    document.body.appendChild(t);
+  }
+  t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',timeout)
+}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function uid(prefix='id'){return prefix+Math.random().toString(36).slice(2,9)}
+
+function getUsers(){return JSON.parse(localStorage.getItem(LS.USERS)||'[]')}
+function saveUsers(u){localStorage.setItem(LS.USERS, JSON.stringify(u))}
+function currentUser(){return localStorage.getItem(LS.SESS)}
+function setCurrentUser(email){localStorage.setItem(LS.SESS,email);refreshWelcome()}
+function logout(){localStorage.removeItem(LS.SESS);refreshWelcome();toast('Logged out'); showPage('home');}
+function refreshWelcome(){
+  const w=q('#welcomeText');
+  const email=currentUser();
+  if(email){
+    const user=getUsers().find(u=>u.email===email);
+    w.innerText = `Hi, ${user?.name || email.split('@')[0]}`; // Show name or part of email
+  } else w.innerText='Welcome, Guest';
+  q('#btnProfile').innerText = email ? 'Account' : 'Login / Register';
+}
+
+function getCart(){return JSON.parse(localStorage.getItem(LS.CART)||'{}')}
+function saveCart(c){localStorage.setItem(LS.CART, JSON.stringify(c)); updateCartSummary()}
+function getWishlist(){return JSON.parse(localStorage.getItem(LS.WISHLIST)||'[]')}
+function saveWishlist(w){localStorage.setItem(LS.WISHLIST, JSON.stringify(w))}
+function addToCart(pid,qty=1){
+  const product = state.products.find(p => p.id === pid);
+  if (!product || product.stock <= 0) {
+    toast('Product is out of stock!');
+    return;
+  }
+  const cart=getCart();
+  if ((cart[pid] || 0) + qty > product.stock) {
+    toast(`Cannot add more than ${product.stock} of this item.`);
+    cart[pid] = product.stock; // Cap at max stock
+  } else {
+    cart[pid]=(cart[pid]||0)+qty;
+  }
+  saveCart(cart);
+  toast('Added to cart');
+}
+function removeFromCart(pid){ const cart=getCart(); delete cart[pid]; saveCart(cart); toast('Item removed from cart'); }
+function updateCartQty(pid,qty){
+  const product = state.products.find(p => p.id === pid);
+  if (!product) return;
+
+  const cart=getCart();
+  if(qty <= 0) {
+    delete cart[pid];
+    toast('Item removed from cart');
+  } else if (qty > product.stock) {
+    cart[pid] = product.stock;
+    toast(`Cannot add more than ${product.stock} of this item.`);
+  } else {
+    cart[pid]=qty;
+  }
+  saveCart(cart);
+  updateCartSummary(); // Ensure summary updates immediately
+}
+function toggleWish(pid){
+  let w=getWishlist();
+  if(w.includes(pid)){
+    w=w.filter(x=>x!==pid);
+    toast('Removed from wishlist')
+  } else {
+    w.push(pid);
+    toast('Added to wishlist')
+  }
+  saveWishlist(w);
+}
+
+function getOrders(){return JSON.parse(localStorage.getItem(LS.ORDERS)||'[]')}
+function saveOrders(o){localStorage.setItem(LS.ORDERS, JSON.stringify(o))}
+function placeOrder(order){
+  const allOrders=getOrders();
+  allOrders.unshift(order); // Add new order to the beginning
+  saveOrders(allOrders);
+  localStorage.setItem(LS.CART, JSON.stringify({})); // Clear cart
+  updateCartSummary();
+  toast('Order placed successfully!');
+  showPage('order-confirmation', { orderId: order.id });
+}
+function findCoupon(code){ const coupons= JSON.parse(localStorage.getItem(LS.COUPONS)||'[]'); return coupons.find(c=>c.code.toUpperCase()===code.toUpperCase()); }
+
+/* ---------- UI Rendering ---------- */
+function renderUI(){
+  const cats=[...new Set(state.products.map(p=>p.category))].sort();
+  const catList=q('#categoryList');
+  catList.innerHTML='';
+  cats.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='category';
+    el.innerText=c;
+    el.onclick=()=>{ state.filters.category=(state.filters.category===c?null:c); state.currentPage=1; showProducts(); };
+    catList.appendChild(el);
+  });
+
+  const brands=[...new Set(state.products.map(p=>p.brand))].sort();
+  const brandList=q('#brandList');
+  brandList.innerHTML='';
+  brands.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='chip'; // Changed to chip for consistency
+    btn.innerText=b;
+    btn.onclick=()=>{ state.filters.brand=(state.filters.brand===b?null:b); state.currentPage=1; showProducts(); };
+    brandList.appendChild(btn);
+  });
+
+  const side=q('#sidebarCats');
+  side.innerHTML='';
+  cats.slice(0,8).forEach(c=>{
+    const d=document.createElement('div');
+    d.className='chip';
+    d.innerText=c;
+    d.onclick=()=>{ state.filters.category=c; state.currentPage=1; showProducts(); };
+    side.appendChild(d);
+  });
+
+  const drawerCats=q('#drawerCats');
+  drawerCats.innerHTML='';
+  cats.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='category';
+    el.innerText=c;
+    el.onclick=()=>{ state.filters.category=c; state.currentPage=1; showProducts(); closeDrawer(); };
+    drawerCats.appendChild(el);
+  });
+}
+
+// function fillMega(){ /* ... kept commented out as HTML for mega menu is not present */ }
+
+/* ---------- Product Listing with fixed View behavior & image expand ---------- */
+function showProducts(){
+  const grid = q('#productsGrid');
+  grid.innerHTML = '';
+  let list = state.products.slice();
+
+  const s = state.filters.search;
+  if (s) {
+    const term = s.toLowerCase();
+    list = list.filter(p => (p.name + p.brand + p.category + (p.description || '')).toLowerCase().includes(term) );
+  }
+  if (state.filters.category) list = list.filter(p => p.category === state.filters.category);
+  if (state.filters.brand) list = list.filter(p => p.brand === state.filters.brand);
+  const min = parseFloat(state.filters.priceMin) || null;
+  const max = parseFloat(state.filters.priceMax) || null;
+  if (min !== null) list = list.filter(p => p.price >= min);
+  if (max !== null) list = list.filter(p => p.price <= max);
+
+  if (state.filters.sort === 'price_asc') list.sort((a, b) => a.price - b.price);
+  else if (state.filters.sort === 'price_desc') list.sort((a, b) => b.price - a.price);
+  else if (state.filters.sort === 'new') list.sort((a, b) => b.id.localeCompare(a.id));
+  else if (state.filters.sort === 'relevance') list.sort((a,b) => b.rating - a.rating); // Simple relevance by rating
+
+  // --- PAGINATION LOGIC RE-ENABLED ---
+  const totalPages = Math.ceil(list.length / state.perPage);
+  if (state.currentPage > totalPages && totalPages > 0) {
+    state.currentPage = totalPages; // Adjust current page if it exceeds total pages after filtering
+  } else if (state.currentPage === 0 && totalPages > 0) {
+    state.currentPage = 1;
+  } else if (totalPages === 0) {
+    state.currentPage = 0; // No pages if no products
+  }
+
+  const start = (state.currentPage - 1) * state.perPage;
+  const pageItems = list.slice(start, start + state.perPage);
+
+  if (pageItems.length === 0) {
+    grid.innerHTML = '<div class="card text-center" style="grid-column: 1 / -1;">No products found matching your criteria.</div>';
+  } else {
+    pageItems.forEach(p => { // Changed from list.forEach to pageItems.forEach
+      const el = document.createElement('div');
+      el.className = 'card product';
+      el.innerHTML = `
+        <div class="prod-img" data-id="${p.id}"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}/400/320`}" alt="${p.name}" /></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-weight:700">${p.name}</div>
+            <div class="muted" style="font-size:13px">${p.rating}★</div>
+          </div>
+          <div>
+            <span class="price">${money(p.price)}</span>
+            ${p.old ? `<span class="old">${money(p.old)}</span>` : ''}
+          </div>
+          <div class="small muted">${p.stock > 0 ? 'In stock' : 'Out of stock'}</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn viewBtn" data-id="${p.id}">View</button>
+            <button class="ghost addBtn" data-id="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>Add</button>
+            <button class="ghost wishBtn" data-id="${p.id}">Wishlist</button>
+            <button class="ghost" onclick="openProductEditModal('${p.id}')">Edit</button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(el);
+      // bind buttons safely (avoids inline onclick parsing issues)
+      el.querySelector('.viewBtn').addEventListener('click', () => openProductModal(p.id));
+      el.querySelector('.addBtn').addEventListener('click', () => { addToCart(p.id, 1); });
+      el.querySelector('.wishBtn').addEventListener('click', () => toggleWish(p.id));
+      // clicking image opens modal zoom
+      el.querySelector('.prod-img').addEventListener('click', () => openProductModal(p.id));
+    });
+  }
+
+  // --- PAGINATION CONTROLS UPDATE ---
+  q('#pageNum').innerText = state.currentPage > 0 ? state.currentPage : 0;
+  q('#paginationInfo').style.display = 'flex'; // Show the "Page 1" text container
+
+  const prevBtn = q('#prevPage');
+  const nextBtn = q('#nextPage');
+
+  prevBtn.style.display = 'block';
+  nextBtn.style.display = 'block';
+
+  prevBtn.disabled = (state.currentPage <= 1);
+  nextBtn.disabled = (state.currentPage >= totalPages);
+
+  if (totalPages <= 1) { // Hide buttons if only one page or no products
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    q('#paginationInfo').style.display = 'none';
+  }
+}
+
+/* ---------- Modal product (image expand with details) ---------- */
+function openProductModal(id){
+  const p=state.products.find(x=>x.id===id);
+  if(!p){ toast('Product not found'); return }
+
+  const html = `
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <div style="display:flex;gap:16px;flex-direction:column">
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:300px">
+          <div style="height:360px;border-radius:8px;overflow:hidden"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-main/800/560`}" style="width:100%;height:100%;object-fit:cover" alt="${p.name}"></div>
+          <div class="thumbnails" style="margin-top:8px">
+            <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb1/96/96`}" alt="t1"></div>
+            <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb2/96/96`}" alt="t2"></div>
+            <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb3/96/96`}" alt="t3"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div style="display:flex;align-items:center;gap:8px"><h2 style="margin:0">${p.name}</h2><div class="muted">${p.rating}★</div><div class="right"><span class="pill">${p.category}</span></div></div>
+          <div style="margin-top:12px"><div style="font-size:20px" class="price">${money(p.price)} ${p.old?`<span class="old">${money(p.old)}</span>`:''}</div><div class="small muted" style="margin-top:6px">${p.stock>0 ? 'Only '+p.stock+' left' : 'Out of stock'}</div></div>
+          <div style="margin-top:12px"><strong>Description</strong><div class="muted" style="margin-top:6px">${p.description || `High-quality ${p.name}. Brand: ${p.brand}. Category: ${p.category}. A great choice for everyday use.`}</div></div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <input id="modalQty" type="number" min="1" value="1" style="width:72px;padding:8px;border-radius:8px;border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-color);"/>
+            <button class="btn" id="modalAdd" ${p.stock === 0 ? 'disabled' : ''}>Add to Cart</button>
+            <button class="ghost" id="modalWish">Wishlist</button>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button class="ghost" onclick="closeModal(); showPage('product', {id: '${p.id}'});">View Full Details</button>
+            <button class="ghost" onclick="openProductEditModal('${p.id}')">Edit Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  q('#modalContent').innerHTML = html;
+  q('#modalBack').style.display='flex';
+  q('#modalAdd').addEventListener('click', ()=>{ const qty=parseInt(q('#modalQty').value||1); addToCart(p.id,qty); });
+  q('#modalWish').addEventListener('click', ()=> toggleWish(p.id));
+}
+function closeModal(){ q('#modalBack').style.display='none'; q('#modalContent').innerHTML=''; }
+
+/* ---------- Product page (full page) ---------- */
+function openProduct(id){
+  const p=state.products.find(x=>x.id===id);
+  if(!p){ toast('Product details not available.'); return }
+
+  const reviews = JSON.parse(localStorage.getItem(LS.REVIEWS) || '{}')[id] || [];
+  let reviewsHtml = '';
+  if (reviews.length === 0) {
+    reviewsHtml = '<div class="muted" style="margin-top:8px">No reviews yet — be the first!</div>';
+  } else {
+    reviewsHtml = reviews.map(r => `
+      <div class="review-item">
+        <strong>${r.user.split('@')[0]}</strong> <span class="muted" style="font-size:12px;">(${new Date(r.at).toLocaleDateString()})</span>
+        <p>${r.text}</p>
+      </div>
+    `).join('');
+  }
+
+  const page = `
+    <div style="margin-bottom: 16px;"><button class="ghost" onclick="showPage('home')">← Back to Products</button></div>
+    <div class="layout product-page-layout">
+      <div class="card" style="grid-column: span 2;">
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:300px">
+            <div style="height:400px;border-radius:8px;overflow:hidden"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-main/800/640`}" style="width:100%;height:100%;object-fit:cover" alt="${p.name}" /></div>
+            <div class="thumbnails" style="margin-top:8px">
+              <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb1/96/96`}" alt="${p.name} thumbnail 1" /></div>
+              <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb2/96/96`}" alt="${p.name} thumbnail 2" /></div>
+              <div class="thumb"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}-thumb3/96/96`}" alt="${p.name} thumbnail 3" /></div>
+            </div>
+          </div>
+          <div style="flex:1;min-width:280px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h2 style="margin:0">${p.name}</h2>
+              <div class="muted">${p.rating}★</div>
+              <div class="right"><span class="pill">${p.category}</span></div>
+            </div>
+            <div style="margin-top:12px">
+              <div style="font-size:20px" class="price">${money(p.price)} ${p.old?`<span class="old">${money(p.old)}</span>`:''}</div>
+              <div class="small muted">${p.stock>0 ? 'In stock' : 'Out of stock'}</div>
+            </div>
+            <div style="margin-top:12px">
+              <div><strong>Description</strong></div>
+              <div class="muted" style="margin-top:6px">${p.description || `High-quality ${p.name}. Brand: ${p.brand}. Category: ${p.category}. A great choice for everyday use.`}</div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+              <input id="prodQty" type="number" min="1" value="1" style="width:72px;padding:8px;border-radius:8px;border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-color);"/>
+              <button class="btn" id="prodAdd" ${p.stock === 0 ? 'disabled' : ''}>Add to Cart</button>
+              <button class="ghost" onclick="toggleWish('${p.id}')">Wishlist</button>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="ghost" onclick="openProductEditModal('${p.id}')">Edit Product</button>
+              <button class="ghost" onclick="deleteProduct('${p.id}')" style="color:red;">Delete Product</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <div id="prodReviews">
+          <strong>Customer Reviews</strong>
+          ${reviewsHtml}
+          <div style="margin-top:12px;">
+            <textarea id="revText" class="input" placeholder="Write a short review (signed in users only)" style="width:100%;"></textarea>
+            <button class="btn" style="margin-top:8px;" onclick="submitReview('${p.id}')">Submit Review</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  q('#pageArea').innerHTML = page;
+  q('#prodAdd').onclick = ()=>{ addToCart(p.id, parseInt(q('#prodQty').value||1)); };
+  state.page='product'; state.pageData={id};
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Product Editing Modal ---------- */
+function openProductEditModal(productId = null) {
+  state.editingProduct = productId;
+  const p = productId ? state.products.find(x => x.id === productId) : {};
+
+  const html = `
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <h3 style="margin-top:0;">${productId ? 'Edit Product' : 'Add New Product'}</h3>
+    <div class="form-group">
+      <label for="editName">Product Name</label>
+      <input type="text" id="editName" class="input" value="${p.name || ''}" placeholder="e.g., Wireless Headphones" />
+    </div>
+    <div class="form-group">
+      <label for="editCategory">Category</label>
+      <input type="text" id="editCategory" class="input" value="${p.category || ''}" placeholder="e.g., Electronics" />
+    </div>
+    <div class="form-group">
+      <label for="editBrand">Brand</label>
+      <input type="text" id="editBrand" class="input" value="${p.brand || ''}" placeholder="e.g., Soundic" />
+    </div>
+    <div class="form-group">
+      <label for="editPrice">Price (₹)</label>
+      <input type="number" id="editPrice" class="input" value="${p.price || ''}" min="0" />
+    </div>
+    <div class="form-group">
+      <label for="editOldPrice">Old Price (₹, optional)</label>
+      <input type="number" id="editOldPrice" class="input" value="${p.old || ''}" min="0" />
+    </div>
+    <div class="form-group">
+      <label for="editRating">Rating (0-5)</label>
+      <input type="number" id="editRating" class="input" value="${p.rating || ''}" min="0" max="5" step="0.1" />
+    </div>
+    <div class="form-group">
+      <label for="editStock">Stock</label>
+      <input type="number" id="editStock" class="input" value="${p.stock || ''}" min="0" />
+    </div>
+    <div class="form-group">
+      <label for="editDescription">Description</label>
+      <textarea id="editDescription" class="input" placeholder="A brief description of the product...">${p.description || ''}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="editImageUrl">Image URL</label>
+      <input type="text" id="editImageUrl" class="input" value="${p.imageUrl || ''}" placeholder="Paste image URL here (e.g., from Unsplash)" />
+      ${p.imageUrl ? `<img src="${p.imageUrl}" alt="Product Image Preview" style="max-width:100%; height:auto; margin-top:8px; border-radius:8px; border:1px solid var(--input-border);"/>` : ''}
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn" onclick="saveProduct()">Save Product</button>
+      ${productId ? `<button class="ghost" style="color:red;" onclick="deleteProduct('${productId}'); closeModal();">Delete Product</button>` : ''}
+      <button class="ghost right" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  q('#modalContent').innerHTML = html;
+  showModal();
+}
+
+function saveProduct() {
+  const id = state.editingProduct;
+  const name = q('#editName').value.trim();
+  const category = q('#editCategory').value.trim();
+  const brand = q('#editBrand').value.trim();
+  const price = parseFloat(q('#editPrice').value);
+  const old = parseFloat(q('#editOldPrice').value) || null;
+  const rating = parseFloat(q('#editRating').value);
+  const stock = parseInt(q('#editStock').value);
+  const description = q('#editDescription').value.trim();
+  const imageUrl = q('#editImageUrl').value.trim();
+
+  if (!name || !category || !brand || isNaN(price) || isNaN(rating) || isNaN(stock)) {
+    toast('Please fill in all required fields (Name, Category, Brand, Price, Rating, Stock).');
+    return;
+  }
+  if (rating < 0 || rating > 5) {
+    toast('Rating must be between 0 and 5.');
+    return;
+  }
+  if (stock < 0) {
+    toast('Stock cannot be negative.');
+    return;
+  }
+
+  let productIndex = -1;
+  if (id) {
+    productIndex = state.products.findIndex(p => p.id === id);
+  }
+
+  const newProduct = {
+    id: id || uid('p'),
+    name, category, brand, price, old, rating, stock, description, imageUrl
+  };
+
+  if (productIndex !== -1) {
+    state.products[productIndex] = newProduct;
+    toast('Product updated successfully!');
+  } else {
+    state.products.push(newProduct);
+    toast('New product added successfully!');
+  }
+
+  localStorage.setItem(LS.PRODUCTS, JSON.stringify(state.products)); // Save updated products to localStorage
+  closeModal();
+  renderUI(); // Re-render categories/brands in sidebar
+  showProducts(); // Re-render product grid
+}
+
+function deleteProduct(productId) {
+  if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    return;
+  }
+  state.products = state.products.filter(p => p.id !== productId);
+  localStorage.setItem(LS.PRODUCTS, JSON.stringify(state.products)); // Save updated products to localStorage
+  toast('Product deleted successfully!');
+  closeModal();
+  renderUI(); // Re-render categories/brands in sidebar
+  showProducts(); // Re-render product grid
+  showPage('home'); // Go back to home page
+}
+
+
+/* ---------- Auth, Cart, Checkout and other functions kept same (omitted here for brevity) ---------- */
+function showPage(page,data={}){
+  state.page=page;
+  state.pageData=data||{};
+  q('#pageArea').innerHTML=''; // Clear previous page content
+
+  if(page==='home'){
+    showProducts();
+  } else if(page==='account'){
+    renderAccountPage();
+  } else if(page==='orders'){
+    showOrders();
+  } else if(page==='wishlist'){
+    showWishlist();
+  } else if(page==='contact'){
+    showContact();
+  } else if(page==='checkout'){
+    showCheckout();
+  } else if(page==='chat'){
+    openChat();
+  } else if(page==='track'){
+    showTracking(data.tracking);
+  } else if(page==='product'){
+    openProduct(data.id);
+  } else if (page === 'order-confirmation') {
+    showOrderConfirmation(data.orderId);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function openAuthModal(mode='login'){
+  const modal=q('#modalContent');
+  modal.innerHTML=`
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${mode==='login'?'Login':'Register'}</h3></div>
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" class="input" placeholder="your@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" class="input" placeholder="********" />
+      </div>
+      ${mode === 'register' ? `
+        <div class="form-group">
+          <label for="authName">Name (Optional)</label>
+          <input type="text" id="authName" class="input" placeholder="Your Name" />
+        </div>
+      ` : ''}
+      <button class="btn" style="width:100%; margin-top:12px;" onclick="${mode === 'login' ? 'doLogin()' : 'doRegister()'}">${mode === 'login' ? 'Login' : 'Register'}</button>
+      <div style="margin-top:12px; text-align:center;">
+        ${mode === 'login' ? `Don't have an account? <a href="#" onclick="openAuthModal('register'); return false;">Register here</a>` : `Already have an account? <a href="#" onclick="openAuthModal('login'); return false;">Login here</a>`}
+      </div>
+    </div>
+  `;
+  showModal();
+}
+
+function doLogin(){
+  const email = q('#authEmail').value.trim();
+  const password = q('#authPassword').value.trim();
+  if (!email || !password) { toast('Please enter email and password'); return; }
+  const users = getUsers();
+  const user = users.find(u => u.email === email && u.password === password);
+  if (user) {
+    setCurrentUser(email);
+    closeModal();
+    toast('Logged in successfully!');
+    showPage('account');
+  } else {
+    toast('Invalid credentials');
+  }
+}
+
+function doRegister(){
+  const email = q('#authEmail').value.trim();
+  const password = q('#authPassword').value.trim();
+  const name = q('#authName').value.trim();
+  if (!email || !password) { toast('Please enter email and password'); return; }
+  const users = getUsers();
+  if (users.some(u => u.email === email)) {
+    toast('Account with this email already exists');
+    return;
+  }
+  users.push({ email, password, name });
+  saveUsers(users);
+  setCurrentUser(email);
+  closeModal();
+  toast('Registration successful! You are now logged in.');
+  showPage('account');
+}
+
+function renderAccountPage(){
+  const email = currentUser();
+  if (!email) {
+    openAuthModal('login');
+    return;
+  }
+  const user = getUsers().find(u => u.email === email);
+  q('#pageArea').innerHTML=`
+    <div class="card">
+      <h3 style="margin-top:0;">My Account</h3>
+      <p><strong>Name:</strong> ${user?.name || 'N/A'}</p>
+      <p><strong>Email:</strong> ${user?.email}</p>
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button class="btn" onclick="showPage('orders')">My Orders</button>
+        <button class="btn" onclick="showPage('wishlist')">My Wishlist</button>
+        <button class="ghost" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  `;
+}
+
+function showOrders(){
+  const email = currentUser();
+  if (!email) {
+    toast('Please login to view your orders.');
+    openAuthModal('login');
+    return;
+  }
+  const allOrders = getOrders();
+  const userOrders = allOrders.filter(order => order.userEmail === email);
+
+  let ordersHtml = '';
+  if (userOrders.length === 0) {
+    ordersHtml = '<div class="muted text-center">You have not placed any orders yet.</div>';
+  } else {
+    ordersHtml = userOrders.map(order => `
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>Order ID: ${order.id}</strong>
+          <span class="muted">${new Date(order.date).toLocaleDateString()}</span>
+        </div>
+        <div style="margin-top:8px;">
+          ${order.items.map(item => `
+            <div style="display:flex; justify-content:space-between; font-size:14px;">
+              <span>${item.name} x ${item.qty}</span>
+              <span>${money(item.price * item.qty)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="hr" style="margin:8px 0;height:1px;background:var(--border-color)"></div>
+        <div style="display:flex; justify-content:space-between; font-weight:700;">
+          <span>Total:</span>
+          <span>${money(order.total)}</span>
+        </div>
+        <div style="margin-top:8px; text-align:right;">
+          <button class="ghost" onclick="showPage('track', {tracking: '${order.id}'})">Track Order</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  q('#pageArea').innerHTML=`
+    <div class="card">
+      <h3 style="margin-top:0;">My Orders</h3>
+      ${ordersHtml}
+    </div>
+  `;
+}
+
+function showWishlist(){
+  const email = currentUser();
+  if (!email) {
+    toast('Please login to view your wishlist.');
+    openAuthModal('login');
+    return;
+  }
+  const wishlist = getWishlist();
+  let wishlistHtml = '';
+  if (wishlist.length === 0) {
+    wishlistHtml = '<div class="muted text-center">Your wishlist is empty.</div>';
+  } else {
+    wishlistHtml = '<div class="prod-grid">';
+    wishlist.forEach(pid => {
+      const p = state.products.find(x => x.id === pid);
+      if (p) {
+        wishlistHtml += `
+          <div class="card product">
+            <div class="prod-img" data-id="${p.id}"><img src="${p.imageUrl || `https://picsum.photos/seed/${p.id}/400/320`}" alt="${p.name}" /></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-weight:700">${p.name}</div>
+              <div><span class="price">${money(p.price)}</span> ${p.old?`<span class="old">${money(p.old)}</span>`:''}</div>
+              <div class="small muted">${p.stock>0?'In stock':'Out of stock'}</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn" onclick="addToCart('${p.id}', 1)">Add to Cart</button>
+                <button class="ghost" onclick="toggleWish('${p.id}')">Remove</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    });
+    wishlistHtml += '</div>';
+  }
+
+  q('#pageArea').innerHTML=`
+    <div class="card">
+      <h3 style="margin-top:0;">My Wishlist</h3>
+      ${wishlistHtml}
+    </div>
+  `;
+}
+
+function showContact(){
+  q('#pageArea').innerHTML=`
+    <div class="card">
+      <h3 style="margin-top:0;">Contact Us</h3>
+      <p class="muted">Have questions or need assistance? Reach out to us!</p>
+      <div style="margin-top:16px;">
+        <p><strong>Email:</strong> support@nexcart.example</p>
+        <p><strong>Phone:</strong> +91 98765 43210</p>
+        <p><strong>Address:</strong> 123 Shopping Lane, Retail City, 10001</p>
+      </div>
+      <div style="margin-top:24px;">
+        <h4>Send us a message</h4>
+        <div class="form-group">
+          <label for="contactName">Your Name</label>
+          <input type="text" id="contactName" class="input" placeholder="John Doe" />
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Your Email</label>
+          <input type="email" id="contactEmail" class="input" placeholder="john.doe@example.com" />
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" class="input" placeholder="Your message..."></textarea>
+        </div>
+        <button class="btn" onclick="submitContactForm()">Send Message</button>
+      </div>
+    </div>
+  `;
+}
+
+function submitContactForm(){
+  const name = q('#contactName').value.trim();
+  const email = q('#contactEmail').value.trim();
+  const message = q('#contactMessage').value.trim();
+  if (!name || !email || !message) {
+    toast('Please fill all fields.');
+    return;
+  }
+  // Simulate sending message
+  toast('Your message has been sent! We will get back to you shortly.');
+  q('#contactName').value = '';
+  q('#contactEmail').value = '';
+  q('#contactMessage').value = '';
+}
+
+function showCheckout(){
+  const cart = getCart();
+  const email = currentUser();
+  if (Object.keys(cart).length === 0) {
+    q('#pageArea').innerHTML = '<div class="card text-center"><h3>Your cart is empty!</h3><p class="muted">Add some items to proceed to checkout.</p><button class="btn" onclick="showPage(\'home\')">Continue Shopping</button></div>';
+    return;
+  }
+  if (!email) {
+    q('#pageArea').innerHTML = '<div class="card text-center"><h3>Please login to checkout.</h3><p class="muted">You need to be logged in to place an order.</p><button class="btn" onclick="openAuthModal(\'login\')">Login / Register</button></div>';
+    return;
+  }
+
+  let subtotal = 0;
+  let cartItemsHtml = '';
+  for (const pid in cart) {
+    const p = state.products.find(x => x.id === pid);
+    if (p) {
+      subtotal += p.price * cart[pid];
+      cartItemsHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span>${p.name} x ${cart[pid]}</span>
+          <span>${money(p.price * cart[pid])}</span>
+        </div>
+      `;
+    }
+  }
+
+  // Apply coupon logic (simple simulation)
+  let discount = 0;
+  let finalTotal = subtotal;
+  const appliedCouponCode = localStorage.getItem('appliedCoupon');
+  if (appliedCouponCode) {
+    const coupon = findCoupon(appliedCouponCode);
+    if (coupon) {
+      if (coupon.type === 'percent') {
+        discount = subtotal * (coupon.val / 100);
+      } else if (coupon.type === 'ship') {
+        // Free shipping, no direct price discount here, but could be reflected as a $0 shipping cost
+        // For now, we'll just show the coupon was applied without a price discount for 'ship' type
+        discount = 0;
+      }
+      finalTotal = subtotal - discount;
+      if (finalTotal < 0) finalTotal = 0; // Prevent negative total
+    }
+  }
+
+
+  q('#pageArea').innerHTML=`
+    <div class="layout" style="grid-template-columns: 1fr 300px;">
+      <div class="card">
+        <h3 style="margin-top:0;">Shipping Information</h3>
+        <div class="form-group">
+          <label for="shippingName">Full Name</label>
+          <input type="text" id="shippingName" class="input" placeholder="John Doe" value="${getUsers().find(u=>u.email===email)?.name || ''}" />
+        </div>
+        <div class="form-group">
+          <label for="shippingAddress">Address Line 1</label>
+          <input type="text" id="shippingAddress" class="input" placeholder="123 Main St" />
+        </div>
+        <div class="form-group">
+          <label for="shippingCity">City</label>
+          <input type="text" id="shippingCity" class="input" placeholder="Retail City" />
+        </div>
+        <div class="form-group">
+          <label for="shippingZip">Zip Code</label>
+          <input type="text" id="shippingZip" class="input" placeholder="10001" />
+        </div>
+        <div class="form-group">
+          <label for="shippingPhone">Phone Number</label>
+          <input type="tel" id="shippingPhone" class="input" placeholder="+91 98765 43210" />
+        </div>
+
+        <h3 style="margin-top:24px;">Payment Method</h3>
+        <div class="form-group">
+          <label for="paymentMethod">Select Payment Method</label>
+          <select id="paymentMethod" class="input">
+            <option value="card">Credit/Debit Card (Simulated)</option>
+            <option value="cod">Cash on Delivery</option>
+          </select>
+        </div>
+        <div id="cardDetails" style="margin-top:12px;">
+          <div class="form-group">
+            <label for="cardNumber">Card Number</label>
+            <input type="text" id="cardNumber" class="input" placeholder="XXXX XXXX XXXX XXXX" />
+          </div>
+          <div style="display:flex; gap:12px;">
+            <div class="form-group" style="flex:1;">
+              <label for="cardExpiry">Expiry Date</label>
+              <input type="text" id="cardExpiry" class="input" placeholder="MM/YY" />
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label for="cardCVC">CVC</label>
+              <input type="text" id="cardCVC" class="input" placeholder="XXX" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">Order Summary</h3>
+        ${cartItemsHtml}
+        <div class="hr" style="margin:12px 0;height:1px;background:var(--border-color)"></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span class="muted">Subtotal:</span>
+          <span>${money(subtotal)}</span>
+        </div>
+        ${appliedCouponCode ? `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="muted">Discount (${appliedCouponCode}):</span>
+            <span style="color:var(--success);">${money(discount)}</span>
+          </div>
+        ` : ''}
+        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:18px; margin-top:12px;">
+          <span>Total:</span>
+          <span>${money(finalTotal)}</span>
+        </div>
+        <button class="btn" style="width:100%; margin-top:24px;" onclick="confirmOrder()">Place Order</button>
+      </div>
+    </div>
+  `;
+
+  // Toggle card details visibility based on payment method
+  q('#paymentMethod').addEventListener('change', (e) => {
+    q('#cardDetails').style.display = e.target.value === 'card' ? 'block' : 'none';
+  });
+  q('#paymentMethod').dispatchEvent(new Event('change')); // Trigger initial state
+}
+
+function confirmOrder(){
+  const email = currentUser();
+  if (!email) { toast('Please login to place an order.'); openAuthModal('login'); return; }
+
+  const shippingName = q('#shippingName').value.trim();
+  const shippingAddress = q('#shippingAddress').value.trim();
+  const shippingCity = q('#shippingCity').value.trim();
+  const shippingZip = q('#shippingZip').value.trim();
+  const shippingPhone = q('#shippingPhone').value.trim();
+  const paymentMethod = q('#paymentMethod').value;
+
+  if (!shippingName || !shippingAddress || !shippingCity || !shippingZip || !shippingPhone) {
+    toast('Please fill in all shipping details.');
+    return;
+  }
+
+  if (paymentMethod === 'card') {
+    const cardNumber = q('#cardNumber').value.trim();
+    const cardExpiry = q('#cardExpiry').value.trim();
+    const cardCVC = q('#cardCVC').value.trim();
+    if (!cardNumber || !cardExpiry || !cardCVC) {
+      toast('Please fill in all card details.');
+      return;
+    }
+    // Basic card validation (e.g., length) could be added here
+  }
+
+  const cart = getCart();
+  let subtotal = 0;
+  const orderItems = [];
+  for (const pid in cart) {
+    const p = state.products.find(x => x.id === pid);
+    if (p) {
+      orderItems.push({ id: p.id, name: p.name, price: p.price, qty: cart[pid] });
+      subtotal += p.price * cart[pid];
+      // Simulate stock reduction
+      const productIndex = state.products.findIndex(prod => prod.id === pid);
+      if (productIndex !== -1) {
+        state.products[productIndex].stock -= cart[pid];
+      }
+    }
+  }
+  localStorage.setItem(LS.PRODUCTS, JSON.stringify(state.products)); // Save updated stock
+
+  let discount = 0;
+  let finalTotal = subtotal;
+  const appliedCouponCode = localStorage.getItem('appliedCoupon');
+  if (appliedCouponCode) {
+    const coupon = findCoupon(appliedCouponCode);
+    if (coupon) {
+      if (coupon.type === 'percent') {
+        discount = subtotal * (coupon.val / 100);
+      } else if (coupon.type === 'ship') {
+        discount = 0; // Free shipping, no direct price discount here
+      }
+      finalTotal = subtotal - discount;
+      if (finalTotal < 0) finalTotal = 0;
+    }
+    localStorage.removeItem('appliedCoupon'); // Clear coupon after use
+  }
+
+  const order = {
+    id: uid('ORD'),
+    userEmail: email,
+    date: new Date().toISOString(),
+    items: orderItems,
+    subtotal: subtotal,
+    discount: discount,
+    total: finalTotal,
+    shipping: { name: shippingName, address: shippingAddress, city: shippingCity, zip: shippingZip, phone: shippingPhone },
+    paymentMethod: paymentMethod,
+    status: 'Pending'
+  };
+
+  placeOrder(order);
+}
+
+function showOrderConfirmation(orderId){
+  const allOrders = getOrders();
+  const order = allOrders.find(o => o.id === orderId);
+
+  if (!order) {
+    q('#pageArea').innerHTML = '<div class="card text-center"><h3>Order not found.</h3><button class="btn" onclick="showPage(\'home\')">Continue Shopping</button></div>';
+    return;
+  }
+
+  q('#pageArea').innerHTML = `
+    <div class="card text-center">
+      <h3 style="color:var(--success);">Order Placed Successfully!</h3>
+      <p>Thank you for your purchase, <strong>${order.shipping.name}</strong>!</p>
+      <p>Your order ID is: <strong>${order.id}</strong></p>
+      <p class="muted">You will receive an email confirmation shortly.</p>
+      <div style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
+        <button class="btn" onclick="showPage('orders')">View My Orders</button>
+        <button class="ghost" onclick="showPage('home')">Continue Shopping</button>
+      </div>
+    </div>
+  `;
+}
+
+
+function openChat(){ q('#pageArea').innerHTML='<div class="card"><h3>Live Chat</h3><p class="muted">Our support agents are available to help you.</p><div style="margin-top:16px;"><textarea class="input" placeholder="Type your message..." style="width:100%; min-height:100px;"></textarea><button class="btn" style="margin-top:8px;">Send</button></div></div>' }
+function showTracking(t){ q('#pageArea').innerHTML=`<div class="card text-center"><h3>Tracking Order: ${t||'N/A'}</h3><p class="muted">Your order is currently ${t.startsWith('ORD') ? 'being processed' : 'in transit'}.</p><div style="margin-top:16px;"><button class="btn" onclick="showPage('orders')">Back to Orders</button></div></div>` }
+function submitReview(pid){
+  const email=currentUser();
+  if(!email){ toast('Sign in to leave a review'); openAuthModal('login'); return }
+  const text=q('#revText').value.trim();
+  if(!text){ toast('Write something'); return }
+
+  const revs=JSON.parse(localStorage.getItem(LS.REVIEWS)||'{}');
+  revs[pid]=revs[pid||'']||[];
+  revs[pid].push({user:email,text,at:new Date().toISOString()});
+  localStorage.setItem(LS.REVIEWS,JSON.stringify(revs));
+  toast('Review submitted');
+  q('#revText').value='';
+  openProduct(pid); // Re-render product page to show new review
+}
+function openCartModal(){
+  const cart=getCart();
+  let html=`
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3>Your Cart</h3></div>
+    <div style="margin-top:8px;">`;
+  if(Object.keys(cart).length===0) {
+    html+='<div class="muted text-center">Your cart is empty.</div>';
+  } else {
+    html+='<div style="display:flex;flex-direction:column;gap:8px">';
+    let subtotal = 0;
+    for(const pid in cart){
+      const p=state.products.find(x=>x.id===pid);
+      if(p){
+        subtotal += p.price * cart[pid];
+        html+=`
+          <div style="display:flex;justify-content:space-between;align-items:center; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+            <div style="flex:1;">
+              <strong>${p.name}</strong>
+              <div class="muted">${money(p.price)} x
+                <input type="number" min="1" max="${p.stock}" style="width:50px;padding:4px;border-radius:4px;border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-color);" value="${cart[pid]}" onchange="updateCartQty('${pid}',parseInt(this.value)||1)"/>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+              <span>${money(p.price * cart[pid])}</span>
+              <button class="ghost" onclick="removeFromCart('${pid}'); openCartModal();">Remove</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    html+=`</div>
+    <div class="hr" style="margin:12px 0;height:1px;background:var(--border-color)"></div>
+    <div style="display:flex; justify-content:space-between; font-weight:700; font-size:18px;">
+      <span>Subtotal:</span>
+      <span>${money(subtotal)}</span>
+    </div>
+    `;
+  }
+  html+=`<div style="margin-top:16px;display:flex;gap:8px; justify-content:flex-end;">
+    ${Object.keys(cart).length > 0 ? `<button class="btn" onclick="showPage('checkout'); closeModal();">Proceed to Checkout</button>` : ''}
+    <button class="ghost" onclick="closeModal()">Close</button>
+  </div></div>`;
+  q('#modalContent').innerHTML=html;
+  showModal();
+}
+function showModal(){ q('#modalBack').style.display='flex' }
+
+/* ---------- Bind events and extras ---------- */
+function bindEvents(){
+  q('#searchBtn').onclick = ()=>{ state.filters.search = q('#searchInput').value.trim(); state.currentPage=1; showProducts(); }
+  q('#searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') q('#searchBtn').click(); });
+  q('#btnProfile').onclick = ()=>{ if(currentUser()) renderAccountPage(); else openAuthModal('login'); }
+  q('#openCartBtn').onclick = ()=>{ showPage('checkout'); }
+  q('#checkoutBtn').onclick = ()=>{ showPage('checkout') }
+  // --- PAGINATION EVENT HANDLERS RE-ENABLED ---
+  q('#prevPage').onclick = ()=>{ if(state.currentPage>1){ state.currentPage--; showProducts() } }
+  q('#nextPage').onclick = ()=>{ state.currentPage++; showProducts() }
+  q('#clearFilters').onclick = ()=>{ state.filters={category:null,brand:null,priceMin:null,priceMax:null,search:null,sort:'relevance'}; q('#priceMin').value=''; q('#priceMax').value=''; q('#searchInput').value=''; showProducts() }
+  q('#applyPrice').onclick = ()=>{ state.filters.priceMin = q('#priceMin').value || null; state.filters.priceMax = q('#priceMax').value || null; state.currentPage=1; showProducts() }
+  q('#sortSelectTop').addEventListener('change', (e)=>{ state.filters.sort = e.target.value; showProducts(); })
+  q('#subscribeBtn').onclick = ()=>{ const email=q('#newsletterEmail').value.trim(); if(!email){ toast('Enter email'); return } const list=JSON.parse(localStorage.getItem(LS.NEWS)||'[]'); if(list.includes(email)){ toast('Already subscribed') } else { list.push(email); localStorage.setItem(LS.NEWS,JSON.stringify(list)); toast('Subscribed') } }
+  q('#applyCoupon').onclick = ()=>{
+    const code=q('#couponInput').value.trim();
+    if(!code){ toast('Enter coupon code'); return }
+    const c=findCoupon(code);
+    if(!c){ toast('Invalid coupon code'); }
+    else {
+      localStorage.setItem('appliedCoupon', c.code); // Store applied coupon
+      toast('Coupon applied: '+c.code);
+      updateCartSummary(); // Update summary to reflect discount
+      if (state.page === 'checkout') showCheckout(); // Re-render checkout if on that page
+    }
+  }
+  q('#viewCart').onclick = ()=>{ const cart=getCart(); if(Object.keys(cart).length===0) toast('Cart empty'); else openCartModal(); }
+  // Mega menu related events commented out as HTML is not present
+  // q('#browseBtn').addEventListener('mouseenter', ()=>{ q('#mega').style.display='block'; setTimeout(()=>document.addEventListener('click',megaClickOutside),300) });
+  // q('#browseBtn').addEventListener('click', ()=>{ q('#mega').style.display = q('#mega').style.display==='block' ? 'none' : 'block'; setTimeout(()=>document.addEventListener('click',megaClickOutside),300) });
+  // function megaClickOutside(e){ if(!q('#mega').contains(e.target) && !q('#browseBtn').contains(e.target)){ q('#mega').style.display='none'; document.removeEventListener('click',megaClickOutside) } }
+  q('#openChat').onclick = ()=>{ showPage('chat'); }
+  window.addEventListener('storage', ()=>{ updateCartSummary(); });
+
+  // video cover thumbnails
+  qAll('.vc-thumb').forEach(t=>t.addEventListener('click', ()=>{
+    const src=t.getAttribute('data-src'); const vid=q('#background-video'); const s=q('#vidSrc'); if(src){ s.src = src; vid.load(); vid.play(); }
+  }));
+
+  // filter drawer toggle
+  q('#filterToggle').addEventListener('click', ()=>{ q('#drawer').classList.add('open'); q('#drawer').setAttribute('aria-hidden','false'); });
+  q('#closeDrawer').addEventListener('click', ()=>{ closeDrawer(); });
+  function closeDrawer(){ q('#drawer').classList.remove('open'); q('#drawer').setAttribute('aria-hidden','true'); }
+
+  // subtle parallax on mouse move (desktop)
+  document.addEventListener('mousemove', (e)=>{
+    const w=window.innerWidth,h=window.innerHeight; const x=(e.clientX-w/2)/w*10; const y=(e.clientY-h/2)/h*10; const vid=q('#background-video'); if(vid) vid.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px) scale(1.05)`;
+    const hero=q('#heroCard'); if(hero) hero.style.transform = `rotateY(${x*0.2}deg) rotateX(${ -y*0.08 }deg)`;
+  });
+
+  // Add New Product button event
+  q('#addNewProductBtn').addEventListener('click', () => openProductEditModal());
+}
+
+function hydrateSidebar(){
+  const cart=getCart();
+  const listArea=q('#cartList');
+  listArea.innerHTML='';
+  const ids=Object.keys(cart);
+  if(ids.length===0){
+    listArea.innerHTML='<div class="muted">Your cart is empty</div>';
+    q('#checkoutBtn').disabled = true;
+    q('#viewCart').disabled = true;
+    q('#couponInput').disabled = true;
+    q('#applyCoupon').disabled = true;
+    return;
+  } else {
+    q('#checkoutBtn').disabled = false;
+    q('#viewCart').disabled = false;
+    q('#couponInput').disabled = false;
+    q('#applyCoupon').disabled = false;
+  }
+
+  ids.forEach(pid=>{
+    const p=state.products.find(x=>x.id===pid);
+    if(!p) return;
+    const qty=cart[pid];
+    const div=document.createElement('div');
+    div.className='cart-item';
+    div.innerHTML = `
+      <div style="width:56px;height:56px;border-radius:8px;background:var(--input-bg);display:flex;align-items:center;justify-content:center; flex-shrink:0; color:var(--text-color);">${p.brand.substring(0,3)}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-weight:700">${p.name}</div>
+          <div class="muted" style="font-size:13px">${money(p.price)}</div>
+        </div>
+        <div class="small muted">Qty:
+          <input type="number" min="1" max="${p.stock}" style="width:50px;padding:6px;border-radius:6px;border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-color);" value="${qty}" onchange="updateCartQty('${pid}',parseInt(this.value)||1)"/>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="ghost" onclick="removeFromCart('${pid}')">Remove</button>
+      </div>
+    `;
+    listArea.appendChild(div);
+  });
+}
+
+function updateCartSummary(){
+  const cart=getCart();
+  let subtotal=0;
+  let count=0;
+  for(const pid in cart){
+    const p=state.products.find(x=>x.id===pid);
+    if(!p) continue;
+    subtotal += p.price * cart[pid];
+    count += cart[pid];
+  }
+
+  let discount = 0;
+  const appliedCouponCode = localStorage.getItem('appliedCoupon');
+  if (appliedCouponCode) {
+    const coupon = findCoupon(appliedCouponCode);
+    if (coupon) {
+      if (coupon.type === 'percent') {
+        discount = subtotal * (coupon.val / 100);
+      } else if (coupon.type === 'ship') {
+        // For free shipping, we don't apply a price discount here, but it would be handled in checkout
+        discount = 0;
+      }
+    } else {
+      localStorage.removeItem('appliedCoupon'); // Remove invalid coupon
+    }
+  }
+
+  const finalAmount = subtotal - discount;
+
+  q('#cartSubtotal').innerText = money(finalAmount);
+  q('#cartCount').innerText = count;
+  hydrateSidebar();
+}
+
+/* ---------- Init and expose ---------- */
+init(); window.NexCart={state, addToCart, toggleWish, openProduct, openAuthModal, showPage, logout, openProductEditModal, deleteProduct};
+</script>
+</body>
+</html>
